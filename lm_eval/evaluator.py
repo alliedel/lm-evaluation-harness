@@ -82,7 +82,7 @@ def simple_evaluate(
             "lm_cache/"
             + (model if isinstance(model, str) else model.model.config._name_or_path)
             + "_"
-            + model_args.replace("=", "-").replace(",", "_").replace("/", "-")
+            + model_args.replace("=", "-").replace(",", "_").replace("/", "-") if model_args is not None else ""
             + ".db",
         )
 

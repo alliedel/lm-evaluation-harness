@@ -93,6 +93,7 @@ class HuggingFaceAutoLM(BaseLM):
         gptq_use_triton: Optional[bool] = False,
         bnb_4bit_quant_type: Optional[str] = None,
         bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
+        token = None
     ):
         """Initializes a HuggingFace `AutoModel` and `AutoTokenizer` for evaluation.
         Args:
@@ -195,6 +196,7 @@ class HuggingFaceAutoLM(BaseLM):
             pretrained,
             trust_remote_code=trust_remote_code,
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
+            token=token
         )
 
         self._add_special_tokens = add_special_tokens
@@ -203,6 +205,7 @@ class HuggingFaceAutoLM(BaseLM):
             revision=revision,
             subfolder=subfolder,
             tokenizer=tokenizer,
+            token=token
         )
         self.tokenizer.model_max_length = self.max_length
 
@@ -226,6 +229,7 @@ class HuggingFaceAutoLM(BaseLM):
             load_in_4bit=load_in_4bit,
             bnb_4bit_quant_type=bnb_4bit_quant_type,
             bnb_4bit_compute_dtype=bnb_4bit_compute_dtype,
+            token=token,
             **model_kwargs,
         )
         # note: peft_path can be different than pretrained model path
@@ -269,6 +273,7 @@ class HuggingFaceAutoLM(BaseLM):
         gptq_use_triton: Optional[bool] = False,
         bnb_4bit_quant_type: Optional[str] = None,
         bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
+        token = None
     ) -> transformers.AutoModel:
         """Returns a pre-trained pytorch model from a pre-trained model configuration."""
         if not quantized:
@@ -290,6 +295,7 @@ class HuggingFaceAutoLM(BaseLM):
                 trust_remote_code=trust_remote_code,
                 torch_dtype=torch_dtype,
                 **model_kwargs,
+                token=token
             )
         else:
             from auto_gptq import AutoGPTQForCausalLM
@@ -302,6 +308,7 @@ class HuggingFaceAutoLM(BaseLM):
                 use_safetensors=True if quantized == True else quantized.endswith('.safetensors'),
                 use_triton=gptq_use_triton,
                 warmup_triton=gptq_use_triton,
+                token=token
             )
         return model
 
@@ -330,11 +337,13 @@ class HuggingFaceAutoLM(BaseLM):
         revision: str,
         subfolder: str,
         tokenizer: Optional[str] = None,
+        token=None
     ) -> transformers.PreTrainedTokenizer:
         """Returns a pre-trained tokenizer from a pre-trained tokenizer configuration."""
         tokenizer = self.AUTO_TOKENIZER_CLASS.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
+            token=token
         )
         tokenizer.pad_token = tokenizer.eos_token
         return tokenizer
@@ -498,12 +507,14 @@ class AutoCausalLM(HuggingFaceAutoLM):
         revision: str,
         subfolder: str,
         tokenizer: Optional[str] = None,
+        token=None
     ) -> transformers.PreTrainedTokenizer:
         tokenizer = super()._create_auto_tokenizer(
             pretrained=pretrained,
             revision=revision,
             subfolder=subfolder,
             tokenizer=tokenizer,
+            token=token
         )
         tokenizer.padding_side = "left"
         return tokenizer
